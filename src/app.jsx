@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./css/app.css";
-import { imagesData, indirResim, downloadImage } from "./hooks";
+import { imagesData, downloadImage } from "./hooks";
 import html2canvas from "html2canvas";
 import { Dropdown, ConfigProvider, theme, Popconfirm } from "antd";
 
@@ -44,13 +44,31 @@ export const App = () => {
     });
   };
 
+  function indirResim(resimUrl) {
+    // Resmi indirme işlemi burada gerçekleştirilebilir
+    console.log("Resim indiriliyor:", resimUrl);
+
+    // Resmi indirme işlemi için bir a etiketi oluştur
+    const link = document.createElement("a");
+    link.href = resimUrl;
+    link.setAttribute("download", ""); // İndirilen dosyanın adı otomatik olarak oluşturulsun
+    document.body.appendChild(link);
+    link.click();
+
+    // Tarayıcı belleğinden a etiketini temizle
+    document.body.removeChild(link);
+  }
+
   const items = [
     {
       key: "1",
       label: (
         <span
           onClick={() => {
-            downloadImage(imagesData.collage[activeImg].src1, "edited.png");
+            downloadImage(
+              collages[activeC].collage.collage[activeImg].src,
+              "edited.png"
+            );
           }}>
           Coxpaни это фото
         </span>
@@ -183,13 +201,12 @@ export const App = () => {
                 <span onClick={() => changeActiveImg(+1)}></span>
               </figure>
               <div
-                className={`w100 df aic jcc selected-imgs ${
-                  fullSS && "active"
-                }`}>
+                className={`w100 df aic selected-imgs ${fullSS && "active"}`}>
                 {collages[activeC]?.collage?.collage?.map((item, ind) => (
                   <figure
                     key={ind}
-                    className={`${activeImg === ind && "active"}`}>
+                    className={`${activeImg === ind && "active"}`}
+                    onClick={() => setActiveImg(ind)}>
                     <img src={item.src} alt="Edited" />
                   </figure>
                 ))}
