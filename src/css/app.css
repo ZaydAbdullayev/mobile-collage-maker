@@ -13,10 +13,12 @@
   color: #111;
   border-radius: 10px;
   z-index: 999;
+  gap: 10px;
 }
 
 .navbar > p {
   font-size: calc(18px + (26 - 18) * (100vw - 320px) / (1440 - 320));
+  flex: 1;
 }
 
 .main {

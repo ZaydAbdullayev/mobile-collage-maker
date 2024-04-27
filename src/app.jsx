@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
 import "./css/app.css";
 import { imagesData, downloadImage, imagesData1 } from "./hooks";
-import html2canvas from "html2canvas";
-import { Dropdown, ConfigProvider, theme, Popconfirm } from "antd";
+// import html2canvas from "html2canvas";
+import { Dropdown, ConfigProvider, theme,  } from "antd";
 
 import { RxCross2 } from "react-icons/rx";
 import { BsThreeDots } from "react-icons/bs";
 import { PiDotsThreeCircleLight } from "react-icons/pi";
-import { TbPhotoShare } from "react-icons/tb";
 import { TiUser } from "react-icons/ti";
+import { FullScreen } from "./foolScreen";
+import { HiOutlineMenu } from "react-icons/hi";
+
 
 export const App = () => {
   const [activeImg, setActiveImg] = useState(null);
   const [fullS, setFullS] = useState(null);
   const [fullSS, setFullSS] = useState(false);
-  const [check, setCheck] = useState(false);
   const [activeC, setActiveC] = useState(0);
 
   const changeActiveImg = (i) => {
@@ -28,22 +29,20 @@ export const App = () => {
     }
   };
 
-  const text = "Скачать этот коллаж в галерею?";
-  const description = "Это действие нельзя будет отменить";
 
-  const downloadImagesToDevice = () => {
-    const mainImgScreen = document.querySelector(".main-img-screen");
-    html2canvas(mainImgScreen).then((canvas) => {
-      canvas.toBlob((blob) => {
-        const imageUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = imageUrl;
-        link.setAttribute("download", "collage.png");
-        link.click();
-        URL.revokeObjectURL(imageUrl);
-      });
-    });
-  };
+  // const downloadImagesToDevice = () => {
+  //   const mainImgScreen = document.querySelector(".main-img-screen");
+  //   html2canvas(mainImgScreen).then((canvas) => {
+  //     canvas.toBlob((blob) => {
+  //       const imageUrl = URL.createObjectURL(blob);
+  //       const link = document.createElement("a");
+  //       link.href = imageUrl;
+  //       link.setAttribute("download", "collage.png");
+  //       link.click();
+  //       URL.revokeObjectURL(imageUrl);
+  //     });
+  //   });
+  // };
 
   const collages = [
     {
@@ -116,7 +115,7 @@ export const App = () => {
 
   return (
     <div className="w100 df fdc aic wrapper">
-      <nav className="w100 df aic jcsb navbar">
+      <nav className="w100 df aic navbar">
         <p>{activeC !== null ? collages[activeC].title : "Главная"}</p>
         <Dropdown
           menu={{ items: navMenu, selectable: true }}
@@ -124,15 +123,14 @@ export const App = () => {
           trigger={["click"]}
           overlayClassName="nav-dropdown">
           <span className="df aic jcc drop-down">
-            <BsThreeDots />
+            <HiOutlineMenu />
           </span>
         </Dropdown>
+        <FullScreen />
       </nav>
       <div className="w100 df aic jcc main">
         <div
-          className={`df fww main-img-screen ${fullS && "full-screen"} ${
-            check && "scale-down"
-          }`}
+          className={`df fww main-img-screen ${fullS && "full-screen"}`}
           style={{
             width: collages[activeC].collage.boxSize.w,
             height: collages[activeC].collage.boxSize.h,
@@ -194,7 +192,6 @@ export const App = () => {
               <figure
                 className={`img-label ${activeImg === ind && "active"}`}
                 key={ind}
-                title={ind}
                 style={{
                   top: item.y,
                   left: item.x,
