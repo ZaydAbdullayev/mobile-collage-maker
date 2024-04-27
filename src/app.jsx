@@ -146,7 +146,7 @@ export const App = () => {
         </Dropdown>
       </nav>
       <div className="w100 df aic jcc main">
-        <Popconfirm
+        {/* <Popconfirm
           placement="topRight"
           title={text}
           description={description}
@@ -156,7 +156,7 @@ export const App = () => {
           <i className="df aic jcc">
             <TbPhotoShare />
           </i>
-        </Popconfirm>
+        </Popconfirm> */}
         <div
           className={`df fww main-img-screen ${fullS && "full-screen"} ${
             check && "scale-down"
