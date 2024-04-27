@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./css/app.css";
-import { imagesData, downloadImage } from "./hooks";
+import { imagesData, downloadImage, imagesData1 } from "./hooks";
 import html2canvas from "html2canvas";
 import { Dropdown, ConfigProvider, theme, Popconfirm } from "antd";
 
@@ -45,23 +45,6 @@ export const App = () => {
     });
   };
 
-  useEffect(() => {
-    function handleResize() {
-      const screenWidth = window.innerWidth;
-      const collageWidth = collages[activeC].collage.boxSize.w;
-
-      if (collageWidth > screenWidth) {
-        setCheck(true); // Ekran genişliğine göre ölçekleme sınıfını ekle
-      } else {
-        setCheck(false); // Eğer resim ekran genişliğine sığarsa ölçekleme sınıfını kaldır
-      }
-    }
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-    return () => window.removeEventListener("resize", handleResize);
-  }, [activeC]);
-
   const collages = [
     {
       id: 11,
@@ -71,7 +54,7 @@ export const App = () => {
     {
       id: 22,
       title: "2nd collage",
-      collage: imagesData,
+      collage: imagesData1,
     },
     {
       id: 33,
@@ -146,17 +129,6 @@ export const App = () => {
         </Dropdown>
       </nav>
       <div className="w100 df aic jcc main">
-        {/* <Popconfirm
-          placement="topRight"
-          title={text}
-          description={description}
-          okText="Да"
-          cancelText="Нет"
-          onConfirm={() => downloadImagesToDevice()}>
-          <i className="df aic jcc">
-            <TbPhotoShare />
-          </i>
-        </Popconfirm> */}
         <div
           className={`df fww main-img-screen ${fullS && "full-screen"} ${
             check && "scale-down"
@@ -222,6 +194,7 @@ export const App = () => {
               <figure
                 className={`img-label ${activeImg === ind && "active"}`}
                 key={ind}
+                title={ind}
                 style={{
                   top: item.y,
                   left: item.x,

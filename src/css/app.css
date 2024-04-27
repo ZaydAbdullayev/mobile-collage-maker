@@ -5,11 +5,14 @@
 }
 
 .navbar {
+  position: sticky;
+  top: 1%;
   height: calc(50px + (70 - 50) * (100vw - 320px) / (1440 - 320));
   padding: 0 3%;
   background: #fff;
   color: #111;
   border-radius: 10px;
+  z-index: 999;
 }
 
 .navbar > p {
@@ -19,7 +22,7 @@
 .main {
   position: relative;
   height: calc(100dvh - 90px);
-  padding: 2%;
+  padding: 1%;
 }
 
 .main > i {
