@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./css/app.css";
 import { imagesData, downloadImage } from "./hooks";
 import html2canvas from "html2canvas";
@@ -14,6 +14,7 @@ export const App = () => {
   const [activeImg, setActiveImg] = useState(null);
   const [fullS, setFullS] = useState(null);
   const [fullSS, setFullSS] = useState(false);
+  const [check, setCheck] = useState(false);
   const [activeC, setActiveC] = useState(0);
 
   const changeActiveImg = (i) => {
@@ -44,20 +45,40 @@ export const App = () => {
     });
   };
 
-  function indirResim(resimUrl) {
-    // Resmi indirme işlemi burada gerçekleştirilebilir
-    console.log("Resim indiriliyor:", resimUrl);
+  useEffect(() => {
+    function handleResize() {
+      const screenWidth = window.innerWidth;
+      const collageWidth = collages[activeC].collage.boxSize.w;
 
-    // Resmi indirme işlemi için bir a etiketi oluştur
-    const link = document.createElement("a");
-    link.href = resimUrl;
-    link.setAttribute("download", ""); // İndirilen dosyanın adı otomatik olarak oluşturulsun
-    document.body.appendChild(link);
-    link.click();
+      if (collageWidth > screenWidth) {
+        setCheck(true); // Ekran genişliğine göre ölçekleme sınıfını ekle
+      } else {
+        setCheck(false); // Eğer resim ekran genişliğine sığarsa ölçekleme sınıfını kaldır
+      }
+    }
 
-    // Tarayıcı belleğinden a etiketini temizle
-    document.body.removeChild(link);
-  }
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, [activeC]);
+
+  const collages = [
+    {
+      id: 11,
+      title: "1st collage",
+      collage: imagesData,
+    },
+    {
+      id: 22,
+      title: "2nd collage",
+      collage: imagesData,
+    },
+    {
+      id: 33,
+      title: "3rd collage",
+      collage: imagesData,
+    },
+  ];
 
   const items = [
     {
@@ -80,24 +101,6 @@ export const App = () => {
     {
       key: "2",
       label: <span onClick={() => console.log()}>2 option</span>,
-    },
-  ];
-
-  const collages = [
-    {
-      id: 11,
-      title: "1st collage",
-      collage: imagesData,
-    },
-    {
-      id: 22,
-      title: "2nd collage",
-      collage: imagesData,
-    },
-    {
-      id: 33,
-      title: "3rd collage",
-      collage: imagesData,
     },
   ];
 
@@ -142,7 +145,7 @@ export const App = () => {
           </span>
         </Dropdown>
       </nav>
-      <div className="df aic jcc main">
+      <div className="w100 df aic jcc main">
         <Popconfirm
           placement="topRight"
           title={text}
@@ -155,7 +158,9 @@ export const App = () => {
           </i>
         </Popconfirm>
         <div
-          className={`df fww main-img-screen ${fullS && "full-screen"}`}
+          className={`df fww main-img-screen ${fullS && "full-screen"} ${
+            check && "scale-down"
+          }`}
           style={{
             width: collages[activeC].collage.boxSize.w,
             height: collages[activeC].collage.boxSize.h,

@@ -5,7 +5,7 @@
 }
 
 .navbar {
-  height: 70px;
+  height: calc(50px + (70 - 50) * (100vw - 320px) / (1440 - 320));
   padding: 0 3%;
   background: #fff;
   color: #111;
@@ -13,15 +13,13 @@
 }
 
 .navbar > p {
-  font-size: 26px;
+  font-size: calc(18px + (26 - 18) * (100vw - 320px) / (1440 - 320));
 }
 
 .main {
   position: relative;
-  width: 100%;
   height: calc(100dvh - 90px);
   padding: 2%;
-  overflow: hidden;
 }
 
 .main > i {
@@ -40,6 +38,12 @@
 .main-img-screen {
   align-content: flex-start;
   overflow: hidden;
+  transform-origin: top left; /* Ölçeklemenin başlangıç noktasını belirler */
+}
+
+.main-img-screen.scale-down {
+  aspect-ratio: 1/1;
+  /* transform: scale(0.); Ölçeklemeyi uygula */
 }
 
 .main-img-screen.full-screen {
@@ -82,7 +86,7 @@
 
 .drop-down {
   color: #fff;
-  font-size: 38px;
+  font-size: calc(26px + (38 - 26) * (100vw - 320px) / (1440 - 320));
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
