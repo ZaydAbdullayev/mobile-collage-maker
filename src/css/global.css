@@ -71,7 +71,7 @@ input[type="file"] {
 
 .skeleton {
   object-fit: cover;
-  background: linear-gradient(-90deg, #eee, #6b6b6b, #eee, #eee, #eee);
+  background: linear-gradient(-90deg, #eee, #979797, #eee, #eee, #eee);
   background-size: 400%;
   animation: skeleton 4s linear infinite;
 }
