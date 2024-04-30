@@ -170,6 +170,7 @@ export const App = () => {
                 <span onClick={() => changeActiveImg(-1)}></span>
                 <img
                   src={collages[activeC].collage.collage[activeImg].src}
+                  className="skeleton"
                   alt="Img"
                   onClick={() => setFullSS(!fullSS)}
                 />
@@ -180,7 +181,7 @@ export const App = () => {
                 {collages[activeC]?.collage?.collage?.map((item, ind) => (
                   <figure
                     key={ind}
-                    className={`${activeImg === ind && "active"}`}
+                    className={`skeleton ${activeImg === ind && "active"}`}
                     onClick={() => setActiveImg(ind)}>
                     <img src={item.src} alt="Edited" />
                   </figure>
@@ -190,7 +191,9 @@ export const App = () => {
           ) : (
             collages[activeC]?.collage?.collage?.map((item, ind) => (
               <figure
-                className={`img-label ${activeImg === ind && "active"}`}
+                className={`img-label skeleton ${
+                  activeImg === ind && "active"
+                }`}
                 key={ind}
                 style={{
                   top: item.y,

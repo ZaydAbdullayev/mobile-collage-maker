@@ -6,59 +6,6 @@ import img5 from "./images/nature.jpg";
 import img6 from "./images/photo_.jpg";
 import img7 from "./images/photo_2023-06-11_23-17-40.jpg";
 
-export const attachImageZoomService = (elementSelector) => {
-  let isZoomed = false;
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let scrollLeft = 0;
-  let scrollTop = 0;
-  const mainImgScreen = document.querySelector(elementSelector);
-
-  if (!mainImgScreen) {
-    console.error("Element not found with the provided selector.");
-    return;
-  }
-
-  mainImgScreen.addEventListener("dblclick", handleDoubleClick);
-  mainImgScreen.addEventListener("mousedown", handleMouseDown);
-  mainImgScreen.addEventListener("mouseup", handleMouseUp);
-  mainImgScreen.addEventListener("mousemove", handleMouseMove);
-
-  function handleDoubleClick() {
-    if (!isZoomed) {
-      mainImgScreen.style.transform = "scale(2)"; // Fotoğrafı iki katına büyüt
-      isZoomed = true;
-    } else {
-      mainImgScreen.style.transform = "scale(1)"; // Normal boyuta geri döndür
-      isZoomed = false;
-    }
-  }
-
-  function handleMouseDown(e) {
-    isDragging = true;
-    startX = e.pageX - mainImgScreen.offsetLeft;
-    startY = e.pageY - mainImgScreen.offsetTop;
-    scrollLeft = mainImgScreen.scrollLeft;
-    scrollTop = mainImgScreen.scrollTop;
-  }
-
-  function handleMouseUp() {
-    isDragging = false;
-  }
-
-  function handleMouseMove(e) {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - mainImgScreen.offsetLeft;
-    const y = e.pageY - mainImgScreen.offsetTop;
-    const walkX = x - startX;
-    const walkY = y - startY;
-    mainImgScreen.scrollLeft = scrollLeft - walkX;
-    mainImgScreen.scrollTop = scrollTop - walkY;
-  }
-};
-
 export function downloadBase64Image(base64Data, fileName) {
   const byteCharacters = atob(base64Data);
   const byteNumbers = new Array(byteCharacters.length);
@@ -114,7 +61,6 @@ export const imagesData = {
       y: 0,
       z: 1,
       src: img1,
-      src1: "https://images.squarespace-cdn.com/content/v1/5e90513ca74b5254da14cca1/1633220789736-8VI8FTX5EFLTMDFWOXBD/image-asset.jpeg",
       filter: [],
     },
     {

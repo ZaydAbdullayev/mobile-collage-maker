@@ -68,3 +68,19 @@ input[type="file"] {
 ::-webkit-scrollbar-thumb {
   background: #999;
 }
+
+.skeleton {
+  object-fit: cover;
+  background: linear-gradient(-90deg, #eee, #aaa, #eee, #eee, #eee);
+  background-size: 400%;
+  animation: skeleton 4s linear infinite;
+}
+
+@keyframes skeleton {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 400%;
+  }
+}
