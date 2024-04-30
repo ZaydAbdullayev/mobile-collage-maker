@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from "react";
 import "./css/app.css";
 import { imagesData, downloadImage, imagesData1 } from "./hooks";
-// import html2canvas from "html2canvas";
-import { Dropdown, ConfigProvider, theme,  } from "antd";
+import { Dropdown, ConfigProvider, theme } from "antd";
+import { Loading } from "./loading/loading";
 
 import { RxCross2 } from "react-icons/rx";
-import { BsThreeDots } from "react-icons/bs";
 import { PiDotsThreeCircleLight } from "react-icons/pi";
 import { TiUser } from "react-icons/ti";
 import { FullScreen } from "./foolScreen";
 import { HiOutlineMenu } from "react-icons/hi";
-
 
 export const App = () => {
   const [activeImg, setActiveImg] = useState(null);
   const [fullS, setFullS] = useState(null);
   const [fullSS, setFullSS] = useState(false);
   const [activeC, setActiveC] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const changeActiveImg = (i) => {
     const newIndex = activeImg + i;
@@ -29,20 +28,19 @@ export const App = () => {
     }
   };
 
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
 
-  // const downloadImagesToDevice = () => {
-  //   const mainImgScreen = document.querySelector(".main-img-screen");
-  //   html2canvas(mainImgScreen).then((canvas) => {
-  //     canvas.toBlob((blob) => {
-  //       const imageUrl = URL.createObjectURL(blob);
-  //       const link = document.createElement("a");
-  //       link.href = imageUrl;
-  //       link.setAttribute("download", "collage.png");
-  //       link.click();
-  //       URL.revokeObjectURL(imageUrl);
-  //     });
-  //   });
-  // };
+  const changeCollage = () => {
+    setLoading(true);
+
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
 
   const collages = [
     {
@@ -108,7 +106,15 @@ export const App = () => {
       label: "Moи коллажи",
       children: collages.map((collage, ind) => ({
         key: collage.id,
-        label: <span onClick={() => setActiveC(ind)}>{collage.title}</span>,
+        label: (
+          <span
+            onClick={() => {
+              setActiveC(ind);
+              changeCollage();
+            }}>
+            {collage.title}
+          </span>
+        ),
       })),
     },
   ];
@@ -130,13 +136,17 @@ export const App = () => {
       </nav>
       <div className="w100 df aic jcc main">
         <div
-          className={`df fww main-img-screen ${fullS && "full-screen"}`}
+          className={`df fww main-img-screen skeleton ${
+            fullS && "full-screen"
+          }`}
           style={{
             width: collages[activeC].collage.boxSize.w,
             height: collages[activeC].collage.boxSize.h,
-            background: collages[activeC].collage.boxSize.bg,
+            background: loading ? "" : collages[activeC].collage.boxSize.bg,
           }}>
-          {fullS ? (
+          {loading ? (
+            <Loading />
+          ) : fullS ? (
             <div className="w100 df fdc full-mode">
               <div
                 className={`w100 df aic jcsb full-mode-title ${

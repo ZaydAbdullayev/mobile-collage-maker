@@ -51,6 +51,20 @@ export function indirResim(resimUrl) {
     });
 }
 
+// const downloadImagesToDevice = () => {
+//   const mainImgScreen = document.querySelector(".main-img-screen");
+//   html2canvas(mainImgScreen).then((canvas) => {
+//     canvas.toBlob((blob) => {
+//       const imageUrl = URL.createObjectURL(blob);
+//       const link = document.createElement("a");
+//       link.href = imageUrl;
+//       link.setAttribute("download", "collage.png");
+//       link.click();
+//       URL.revokeObjectURL(imageUrl);
+//     });
+//   });
+// };
+
 export const imagesData = {
   boxSize: { h: 400, w: 400, bg: "#353535" },
   collage: [
