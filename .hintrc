@@ -11,8 +11,6 @@
           "aspect-ratio"
         ]
       }
-    ],
-    "detect-css-reflows/composite": "off",
-    "detect-css-reflows/paint": "off"
+    ]
   }
 }

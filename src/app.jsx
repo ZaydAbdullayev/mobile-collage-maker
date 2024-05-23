@@ -1,64 +1,69 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./css/app.css";
-import { imagesData, downloadImage, imagesData1 } from "./hooks";
+import { downloadImage } from "./hooks";
+import { getCollages, loadCollage } from "./api";
+// import html2canvas from "html2canvas";
 import { Dropdown, ConfigProvider, theme } from "antd";
-import { Loading } from "./loading/loading";
 
 import { RxCross2 } from "react-icons/rx";
+import { BiLoaderCircle } from "react-icons/bi";
 import { PiDotsThreeCircleLight } from "react-icons/pi";
 import { TiUser } from "react-icons/ti";
-import { FullScreen } from "./foolScreen";
+import { FullScreen } from "./fullScreen";
 import { HiOutlineMenu } from "react-icons/hi";
 
 export const App = () => {
   const [activeImg, setActiveImg] = useState(null);
   const [fullS, setFullS] = useState(null);
   const [fullSS, setFullSS] = useState(false);
-  const [activeC, setActiveC] = useState(0);
+  const [collages, setCollages] = useState(null);
+  const [activeC, setActiveC] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [emty, setEmty] = useState("");
 
   const changeActiveImg = (i) => {
     const newIndex = activeImg + i;
-    if (newIndex >= 0 && newIndex < imagesData.collage.length) {
+    if (newIndex >= 0 && newIndex < activeC?.collage.length) {
       setActiveImg(newIndex);
     } else {
       setActiveImg(
-        (newIndex + imagesData.collage.length) % imagesData.collage.length
+        (newIndex + activeC?.collage.length) % activeC?.collage.length
       );
     }
   };
 
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  }, []);
+  // const downloadImagesToDevice = () => {
+  //   const mainImgScreen = document.querySelector(".main-img-screen");
+  //   html2canvas(mainImgScreen).then((canvas) => {
+  //     canvas.toBlob((blob) => {
+  //       const imageUrl = URL.createObjectURL(blob);
+  //       const link = document.createElement("a");
+  //       link.href = imageUrl;
+  //       link.setAttribute("download", "collage.png");
+  //       link.click();
+  //       URL.revokeObjectURL(imageUrl);
+  //     });
+  //   });
+  // };
 
-  const changeCollage = () => {
-    setLoading(true);
-
-    setTimeout(() => {
+  if (!collages)
+    getCollages().then((result) => {
+      setCollages(result);
       setLoading(false);
-    }, 1000);
+    });
+
+  const getCollageImg = async (c, title) => {
+    try {
+      setLoading(true);
+      const collage = await loadCollage(c);
+      if (collage == null)
+        return setEmty("Not found images belonging to this collage.");
+      setActiveC({ ...collage, title });
+      setLoading(false);
+    } catch (error) {
+      console.error("Error loading collage:", error);
+    }
   };
-
-  const collages = [
-    {
-      id: 11,
-      title: "1st collage",
-      collage: imagesData,
-    },
-    {
-      id: 22,
-      title: "2nd collage",
-      collage: imagesData1,
-    },
-    {
-      id: 33,
-      title: "3rd collage",
-      collage: imagesData,
-    },
-  ];
 
   const items = [
     {
@@ -66,10 +71,11 @@ export const App = () => {
       label: (
         <span
           onClick={() => {
-            downloadImage(
-              collages[activeC].collage.collage[activeImg].src,
-              "edited.png"
-            );
+            if (collages && collages[activeC])
+              downloadImage(
+                collages[activeC].collage.collage[activeImg].src,
+                "edited.png"
+              );
           }}>
           Coxpaни это фото
         </span>
@@ -97,32 +103,34 @@ export const App = () => {
         </span>
       ),
     },
-    {
-      type: "divider",
-    },
-    {
-      key: "2",
-      type: "group",
-      label: "Moи коллажи",
-      children: collages.map((collage, ind) => ({
-        key: collage.id,
-        label: (
-          <span
-            onClick={() => {
-              setActiveC(ind);
-              changeCollage();
-            }}>
-            {collage.title}
-          </span>
-        ),
-      })),
-    },
   ];
+
+  if (collages) {
+    navMenu.push(
+      {
+        type: "divider",
+      },
+      {
+        key: "2",
+        type: "group",
+        label: "Moи коллажи",
+        children: collages?.map((collage) => ({
+          key: collage?.id,
+          label: (
+            <span
+              onClick={() => getCollageImg(collage?.collage, collage?.title)}>
+              {collage?.title}
+            </span>
+          ),
+        })),
+      }
+    );
+  }
 
   return (
     <div className="w100 df fdc aic wrapper">
       <nav className="w100 df aic navbar">
-        <p>{activeC !== null ? collages[activeC].title : "Главная"}</p>
+        <p>{activeC?.length !== 0 ? activeC?.title : "Главная"}</p>
         <Dropdown
           menu={{ items: navMenu, selectable: true }}
           placement="bottomRight"
@@ -135,103 +143,109 @@ export const App = () => {
         <FullScreen />
       </nav>
       <div className="w100 df aic jcc main">
-        <div
-          className={`df fww main-img-screen skeleton ${
-            fullS && "full-screen"
-          }`}
-          style={{
-            width: collages[activeC].collage.boxSize.w,
-            height: collages[activeC].collage.boxSize.h,
-            background: loading ? "" : collages[activeC].collage.boxSize.bg,
-          }}>
-          {loading ? (
-            <Loading />
-          ) : fullS ? (
-            <div className="w100 df fdc full-mode">
-              <div
-                className={`w100 df aic jcsb full-mode-title ${
-                  fullSS && "active"
-                }`}>
-                <span
-                  className="df aic jcc close-full-screen"
-                  onClick={() => setFullS(null)}>
-                  <RxCross2 />
-                </span>
-                <big>
-                  {activeImg + 1} - {collages[activeC].collage.collage.length}
-                </big>
-                <ConfigProvider
-                  theme={{
-                    algorithm: theme.darkAlgorithm,
-                  }}>
-                  <Dropdown
-                    menu={{
-                      items,
-                    }}
-                    placement="bottomRight"
-                    trigger={["click"]}>
-                    <span className="df aic jcc drop-down">
-                      <PiDotsThreeCircleLight />
-                    </span>
-                  </Dropdown>
-                </ConfigProvider>
-              </div>
-              <figure className="w100 df aic active-img">
-                <span onClick={() => changeActiveImg(-1)}></span>
-                <img
-                  src={collages[activeC].collage.collage[activeImg].src}
-                  className="skeleton"
-                  alt="Img"
-                  onClick={() => setFullSS(!fullSS)}
-                />
-                <span onClick={() => changeActiveImg(+1)}></span>
-              </figure>
-              <div
-                className={`w100 df aic selected-imgs ${fullSS && "active"}`}>
-                {collages[activeC]?.collage?.collage?.map((item, ind) => (
-                  <figure
-                    key={ind}
-                    className={`skeleton ${activeImg === ind && "active"}`}
-                    onClick={() => setActiveImg(ind)}>
-                    <img src={item.src} alt="Edited" />
-                  </figure>
-                ))}
-              </div>
-            </div>
+        {!loading ? (
+          emty ? (
+            emty
           ) : (
-            collages[activeC]?.collage?.collage?.map((item, ind) => (
-              <figure
-                className={`img-label skeleton ${
-                  activeImg === ind && "active"
-                }`}
-                key={ind}
-                style={{
-                  top: item.y,
-                  left: item.x,
-                  width: item.w,
-                  height: item.h,
-                  zIndex: item.z,
-                }}>
-                <img
-                  src={item.src}
-                  alt="Edited"
-                  onClick={() => {
-                    setFullS(true);
-                    setActiveImg(ind);
-                    setFullSS(true);
-                  }}
-                  style={{
-                    filter: item.filter.map(
-                      (filter) =>
-                        `${filter.value}(${filter.number}${filter.unit})`
-                    ),
-                    userSelect: "none",
-                  }}
-                />
-              </figure>
-            ))
-          )}
-        </div>
+            <div
+              className={`df fww main-img-screen ${fullS && "full-screen"}`}
+              style={{
+                width: `${activeC?.boxSize?.w}px`,
+                height: `${activeC?.boxSize?.h}px`,
+                background: activeC?.boxSize?.bg,
+              }}>
+              {fullS ? (
+                <div className="w100 df fdc full-mode">
+                  <div
+                    className={`w100 df aic jcsb full-mode-title ${
+                      fullSS && "active"
+                    }`}>
+                    <span
+                      className="df aic jcc close-full-screen"
+                      onClick={() => setFullS(null)}>
+                      <RxCross2 />
+                    </span>
+                    <big>
+                      {activeImg + 1} - {activeC?.collage?.length}
+                    </big>
+                    <ConfigProvider
+                      theme={{
+                        algorithm: theme.darkAlgorithm,
+                      }}>
+                      <Dropdown
+                        menu={{
+                          items,
+                        }}
+                        placement="bottomRight"
+                        trigger={["click"]}>
+                        <span className="df aic jcc drop-down">
+                          <PiDotsThreeCircleLight />
+                        </span>
+                      </Dropdown>
+                    </ConfigProvider>
+                  </div>
+                  <figure className="w100 df aic active-img">
+                    <span onClick={() => changeActiveImg(-1)}></span>
+                    <img
+                      src={activeC?.collage?.[activeImg].src}
+                      alt="Img"
+                      onClick={() => setFullSS(!fullSS)}
+                    />
+                    <span onClick={() => changeActiveImg(+1)}></span>
+                  </figure>
+                  <div
+                    className={`w100 df aic selected-imgs ${
+                      fullSS && "active"
+                    }`}>
+                    {activeC?.collage?.map((item, ind) => (
+                      <figure
+                        key={ind}
+                        className={`${activeImg === ind && "active"}`}
+                        onClick={() => setActiveImg(ind)}>
+                        <img src={item.src} alt="Edited" />
+                        <i></i>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                activeC?.collage?.map((item, ind) => (
+                  <figure
+                    className={`img-label ${activeImg === ind && "active"}`}
+                    key={ind}
+                    style={{
+                      top: item.y,
+                      left: item.x,
+                      width: item.w,
+                      height: item.h,
+                      zIndex: item.z,
+                    }}>
+                    <img
+                      src={item.src}
+                      alt="Edited"
+                      onClick={() => {
+                        setFullS(true);
+                        setActiveImg(ind);
+                        setFullSS(true);
+                      }}
+                      style={{
+                        filter: item.filter.map(
+                          (filter) =>
+                            `${filter.value}(${filter.number}${filter.unit})`
+                        ),
+                        userSelect: "none",
+                      }}
+                    />
+                  </figure>
+                ))
+              )}
+            </div>
+          )
+        ) : (
+          <span className="df aic gap5 loading">
+            <BiLoaderCircle />
+          </span>
+        )}
       </div>
     </div>
   );
