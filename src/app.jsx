@@ -3,7 +3,7 @@ import "./css/app.css";
 import { downloadImage } from "./hooks";
 import { getCollages, loadCollage, loadImage } from "./api";
 // import html2canvas from "html2canvas";
-import { Dropdown, ConfigProvider, theme } from "antd";
+import { Dropdown, ConfigProvider, theme, Result } from "antd";
 
 import { RxCross2 } from "react-icons/rx";
 import { BiLoaderCircle } from "react-icons/bi";
@@ -66,7 +66,6 @@ export const App = () => {
         setEmty("Not found images belonging to this collage.");
       } else {
         setActiveC({ ...collage, title });
-        setDfCollage(null);
       }
     } catch (error) {
       console.error("Error loading collage:", error);
@@ -210,46 +209,38 @@ export const App = () => {
                         key={ind}
                         className={`${activeImg === ind && "active"}`}
                         onClick={() => setActiveImg(ind)}>
-                        <img src={item.src} alt="Edited" />
+                        <img
+                          src={item.src}
+                          style={{
+                            filter: item?.filter.map(
+                              (filter) =>
+                                `${filter?.value}(${filter?.number}${filter?.unit})`
+                            ),
+                            userSelect: "none",
+                          }}
+                          alt="Edited"
+                        />
                         <i></i>
                       </figure>
                     ))}
                   </div>
                 </div>
               ) : dfCollage ? (
-                <figure className="default-collage">
+                <figure
+                  className="default-collage"
+                  onClick={() => {
+                    setFullS(true);
+                    setActiveImg(0);
+                    setFullSS(true);
+                  }}>
                   <img src={dfCollage} alt="collage" />
                 </figure>
               ) : (
-                activeC?.collage?.map((item, ind) => (
-                  <figure
-                    className={`img-label ${activeImg === ind && "active"}`}
-                    key={ind}
-                    style={{
-                      top: `${item.y}px`,
-                      left: `${item.x}px`,
-                      width: item.w,
-                      height: item.h,
-                      zIndex: item.z,
-                    }}>
-                    <img
-                      src={item.src}
-                      alt="Edited"
-                      onClick={() => {
-                        setFullS(true);
-                        setActiveImg(ind);
-                        setFullSS(true);
-                      }}
-                      style={{
-                        filter: item.filter.map(
-                          (filter) =>
-                            `${filter.value}(${filter.number}${filter.unit})`
-                        ),
-                        userSelect: "none",
-                      }}
-                    />
-                  </figure>
-                ))
+                <Result
+                  status="403"
+                  title="Select a collage"
+                  subTitle="Select any collage to view the collage"
+                />
               )}
             </div>
           )
