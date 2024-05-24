@@ -41,6 +41,7 @@
 }
 
 .main-img-screen {
+  position: relative;
   align-content: flex-start;
   overflow: hidden;
   transform-origin: top left; /* Ölçeklemenin başlangıç noktasını belirler */
@@ -202,7 +203,7 @@
 }
 
 .img-label {
-  position: relative;
+  position: absolute;
 }
 
 .img-label > img,
@@ -212,6 +213,7 @@
   object-fit: cover;
   cursor: pointer;
   transition: all 0.1s ease;
+  background: red;
 }
 
 .loading {

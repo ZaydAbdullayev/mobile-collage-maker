@@ -20,6 +20,8 @@ export const App = () => {
   const [activeC, setActiveC] = useState([]);
   const [loading, setLoading] = useState(true);
   const [emty, setEmty] = useState("");
+  console.log(collages);
+  console.log(activeC);
 
   const changeActiveImg = (i) => {
     const newIndex = activeImg + i;
@@ -214,8 +216,8 @@ export const App = () => {
                     className={`img-label ${activeImg === ind && "active"}`}
                     key={ind}
                     style={{
-                      top: item.y,
-                      left: item.x,
+                      top: `${item.y}px`,
+                      left: `${item.x}px`,
                       width: item.w,
                       height: item.h,
                       zIndex: item.z,
