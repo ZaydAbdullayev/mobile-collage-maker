@@ -61,7 +61,7 @@ export async function getCollages() {
   });
 }
 
-async function loadImage(dlId) {
+export async function loadImage(dlId) {
   const response = await postRequest(`dropbox/file/${dlId}`, {}, true);
   return response.blob();
 }
