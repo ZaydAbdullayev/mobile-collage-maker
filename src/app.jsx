@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./css/app.css";
 import { downloadImage } from "./hooks";
-import { getCollages, loadCollage } from "./api";
+import { getCollages, loadCollage, loadImage } from "./api";
 // import html2canvas from "html2canvas";
 import { Dropdown, ConfigProvider, theme } from "antd";
 
@@ -19,6 +19,7 @@ export const App = () => {
   const [collages, setCollages] = useState(null);
   const [activeC, setActiveC] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dfCollage, setDfCollage] = useState(null);
   const [emty, setEmty] = useState("");
   console.log(collages);
   console.log(activeC);
@@ -57,11 +58,16 @@ export const App = () => {
   const getCollageImg = async (c, title) => {
     try {
       setLoading(true);
-      const collage = await loadCollage(c);
-      if (collage == null)
-        return setEmty("Not found images belonging to this collage.");
-      setActiveC({ ...collage, title });
+      const sd = await loadImage(c?.composedId);
+      setDfCollage(window.URL.createObjectURL(sd));
       setLoading(false);
+      const collage = await loadCollage(c);
+      if (collage == null) {
+        setEmty("Not found images belonging to this collage.");
+      } else {
+        setActiveC({ ...collage, title });
+        setDfCollage(null);
+      }
     } catch (error) {
       console.error("Error loading collage:", error);
     }
@@ -210,6 +216,10 @@ export const App = () => {
                     ))}
                   </div>
                 </div>
+              ) : dfCollage ? (
+                <figure className="default-collage">
+                  <img src={dfCollage} alt="collage" />
+                </figure>
               ) : (
                 activeC?.collage?.map((item, ind) => (
                   <figure

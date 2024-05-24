@@ -40,37 +40,6 @@ export async function getCollages() {
         bg: "#353535",
       },
       filter: collageData.globalFilters,
-      collage: collageData.images.map((im) => ({
-        id: im.dlId,
-        filename: im.filename,
-        h: im.height,
-        w: im.width,
-        x: im.left,
-        y: im.top,
-        z: im.layer,
-        filter: im.filters,
-      })),
-    };
-
-    return {
-      id,
-      title: result.booking[id].b_custom_comment,
-      collage,
-    };
-  });
-}
-
-export async function getCollagess() {
-  const result = await postRequest("drive", { fields: 0 });
-  return Object.keys(result.booking).map((id) => {
-    let collageData = result.booking[id].b_options.collage[0];
-    let collage = {
-      boxSize: {
-        h: collageData.canvasHeight,
-        w: collageData.canvasWidth,
-        bg: "#353535",
-      },
-      filter: collageData.globalFilters,
       composedId: collageData.composedId, // need to append this line
       collage: collageData.images.map((im) => ({
         id: im.dlId,
