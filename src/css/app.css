@@ -227,6 +227,10 @@
   color: #222;
 }
 
+.loading.small {
+  color: #f6f6f6;
+}
+
 .loading > svg {
   font-size: 40px;
   animation: rotate 2s linear infinite;
