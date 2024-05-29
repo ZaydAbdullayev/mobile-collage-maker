@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "./css/app.css";
 import { downloadImage } from "./hooks";
-import { getCollages, loadCollage, loadImage } from "./api";
+import { getCollages, loadImage } from "./api";
 // import html2canvas from "html2canvas";
-import { Dropdown, ConfigProvider, theme, Result, Tooltip } from "antd";
+import { Dropdown, ConfigProvider, theme, Result } from "antd";
 
 import { RxCross2 } from "react-icons/rx";
 import { BiLoaderCircle } from "react-icons/bi";
@@ -13,42 +13,25 @@ import { FullScreen } from "./fullScreen";
 import { HiOutlineMenu } from "react-icons/hi";
 
 export const App = () => {
-  const [activeImg, setActiveImg] = useState(null);
+  const [activeImgInd, setActiveImgInd] = useState(null);
   const [fullS, setFullS] = useState(null);
   const [fullSS, setFullSS] = useState(false);
   const [collages, setCollages] = useState(null);
-  const [activeC, setActiveC] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dfCollage, setDfCollage] = useState(null);
-  const [emty, setEmty] = useState("");
-  const [disabled, setDisabled] = useState(false);
-  console.log(collages);
-  console.log(activeC);
+  const [ind, setInd] = useState(null);
 
-  const changeActiveImg = (i) => {
-    const newIndex = activeImg + i;
-    if (newIndex >= 0 && newIndex < activeC?.collage.length) {
-      setActiveImg(newIndex);
+  const changeActiveImgInd = (i) => {
+    const newIndex = activeImgInd + i;
+    if (newIndex >= 0 && newIndex < collages?.[ind]?.collage?.collage.length) {
+      setActiveImgInd(newIndex);
     } else {
-      setActiveImg(
-        (newIndex + activeC?.collage.length) % activeC?.collage.length
+      setActiveImgInd(
+        (newIndex + collages?.[ind]?.collage?.collage.length) %
+          collages?.[ind]?.collage?.collage.length
       );
     }
   };
-
-  // const downloadImagesToDevice = () => {
-  //   const mainImgScreen = document.querySelector(".main-img-screen");
-  //   html2canvas(mainImgScreen).then((canvas) => {
-  //     canvas.toBlob((blob) => {
-  //       const imageUrl = URL.createObjectURL(blob);
-  //       const link = document.createElement("a");
-  //       link.href = imageUrl;
-  //       link.setAttribute("download", "collage.png");
-  //       link.click();
-  //       URL.revokeObjectURL(imageUrl);
-  //     });
-  //   });
-  // };
 
   if (!collages)
     getCollages().then((result) => {
@@ -56,20 +39,33 @@ export const App = () => {
       setLoading(false);
     });
 
-  const getCollageImg = async (c, title) => {
+  const getCollageImg = async (c, title, i) => {
     try {
+      setActiveImgInd(null);
       setLoading(true);
-      setDisabled(false);
       const sd = await loadImage(c?.composedId);
       setDfCollage({ src: window.URL.createObjectURL(sd), title });
       setLoading(false);
-      const collage = await loadCollage(c);
-      if (collage == null) {
-        setEmty("Not found images belonging to this collage.");
-      } else {
-        setActiveC({ ...collage, title });
-        setDisabled(true);
-      }
+      getCollageImgs(c, i);
+    } catch (error) {
+      console.error("Error loading collage:", error);
+    }
+  };
+
+  const getCollageImgs = async (c, i) => {
+    try {
+      c.collage.forEach(async (item, index) => {
+        const img = await loadImage(item.id).then((res) =>
+          window.URL.createObjectURL(res)
+        );
+        if (img?.length > 0) {
+          collages[i].collage.collage[index].src = img;
+          if (!collages?.[ind]?.collage?.collage?.[activeImgInd]?.src) {
+            setActiveImgInd(index);
+          }
+          setCollages(collages);
+        }
+      });
     } catch (error) {
       console.error("Error loading collage:", error);
     }
@@ -81,9 +77,12 @@ export const App = () => {
       label: (
         <span
           onClick={() => {
-            if (collages && collages[activeC])
+            if (
+              collages &&
+              collages?.[ind]?.collage?.collage?.[activeImgInd]?.src
+            )
               downloadImage(
-                collages[activeC].collage.collage[activeImg].src,
+                collages?.[ind]?.collage?.collage?.[activeImgInd]?.src,
                 "edited.png"
               );
           }}>
@@ -124,11 +123,14 @@ export const App = () => {
         key: "2",
         type: "group",
         label: "Moи коллажи",
-        children: collages?.map((collage) => ({
+        children: collages?.map((collage, ind) => ({
           key: collage?.id,
           label: (
             <span
-              onClick={() => getCollageImg(collage?.collage, collage?.title)}>
+              onClick={() => {
+                getCollageImg(collage?.collage, collage?.title, ind);
+                setInd(ind);
+              }}>
               {collage?.title}
             </span>
           ),
@@ -154,73 +156,82 @@ export const App = () => {
       </nav>
       <div className="w100 df aic jcc main">
         {!loading ? (
-          emty ? (
-            emty
-          ) : (
-            <div
-              className={`df fww main-img-screen ${fullS && "full-screen"}`}
-              style={{
-                width: `${activeC?.boxSize?.w}px`,
-                height: `${activeC?.boxSize?.h}px`,
-                background: activeC?.boxSize?.bg,
-              }}>
-              {fullS ? (
-                <div className="w100 df fdc full-mode">
-                  <div
-                    className={`w100 df aic jcsb full-mode-title ${
-                      fullSS && "active"
-                    }`}>
-                    <span
-                      className="df aic jcc close-full-screen"
-                      onClick={() => setFullS(null)}>
-                      <RxCross2 />
-                    </span>
-                    <big>
-                      {activeImg + 1} - {activeC?.collage?.length}
-                    </big>
-                    <ConfigProvider
-                      theme={{
-                        algorithm: theme.darkAlgorithm,
-                      }}>
-                      <Dropdown
-                        menu={{
-                          items,
-                        }}
-                        placement="bottomRight"
-                        trigger={["click"]}>
-                        <span className="df aic jcc drop-down">
-                          <PiDotsThreeCircleLight />
-                        </span>
-                      </Dropdown>
-                    </ConfigProvider>
-                  </div>
-                  <figure className="w100 df aic active-img">
-                    <span onClick={() => changeActiveImg(-1)}></span>
-                    {disabled ? (
-                      <img
-                        src={activeC?.collage?.[activeImg].src}
-                        alt="Img"
-                        onClick={() => setFullSS(!fullSS)}
-                      />
-                    ) : (
-                      <span className="df aic gap5 loading small">
-                        Collage content loading <BiLoaderCircle />
+          <div
+            className={`df fww main-img-screen ${fullS && "full-screen"}`}
+            style={{
+              width: `${collages?.[ind]?.collage?.boxSize?.w}px`,
+              height: `${collages?.[ind]?.collage?.boxSize?.h}px`,
+              background: collages?.[ind]?.collage?.boxSize?.bg,
+            }}>
+            {fullS ? (
+              <div className="w100 df fdc full-mode">
+                <div
+                  className={`w100 df aic jcsb full-mode-title ${
+                    fullSS && "active"
+                  }`}>
+                  <span
+                    className="df aic jcc close-full-screen"
+                    onClick={() => setFullS(null)}>
+                    <RxCross2 />
+                  </span>
+                  <big>
+                    {activeImgInd + 1} -{" "}
+                    {collages?.[ind]?.collage?.collage?.length}
+                  </big>
+                  <ConfigProvider
+                    theme={{
+                      algorithm: theme.darkAlgorithm,
+                    }}>
+                    <Dropdown
+                      menu={{
+                        items,
+                      }}
+                      placement="bottomRight"
+                      trigger={["click"]}>
+                      <span className="df aic jcc drop-down">
+                        <PiDotsThreeCircleLight />
                       </span>
-                    )}
-
-                    <span onClick={() => changeActiveImg(+1)}></span>
-                  </figure>
-                  <div
-                    className={`w100 df aic selected-imgs ${
-                      fullSS && "active"
-                    }`}>
-                    {activeC?.collage?.map((item, ind) => (
-                      <figure
-                        key={ind}
-                        className={`${activeImg === ind && "active"}`}
-                        onClick={() => setActiveImg(ind)}>
+                    </Dropdown>
+                  </ConfigProvider>
+                </div>
+                <figure className="w100 df aic jcc active-img">
+                  <span onClick={() => changeActiveImgInd(-1)}></span>
+                  {collages?.[ind]?.collage?.collage?.[activeImgInd]?.src ? (
+                    <img
+                      src={
+                        collages?.[ind]?.collage?.collage?.[activeImgInd]?.src
+                      }
+                      style={{
+                        filter: collages?.[ind]?.collage?.collage?.[
+                          activeImgInd
+                        ]?.filter?.map(
+                          (filter) =>
+                            `${filter?.value}(${filter?.number}${filter?.unit})`
+                        ),
+                        userSelect: "none",
+                      }}
+                      alt="Img"
+                      onClick={() => setFullSS(!fullSS)}
+                    />
+                  ) : (
+                    <span className="df aic gap5 loading small">
+                      Loading <BiLoaderCircle />
+                    </span>
+                  )}
+                  <span onClick={() => changeActiveImgInd(+1)}></span>
+                </figure>
+                <div
+                  className={`w100 df aic selected-imgs ${fullSS && "active"}`}>
+                  {collages[ind].collage?.collage?.map((item, idx) => (
+                    <figure
+                      key={idx}
+                      className={`df aic jcc ${
+                        activeImgInd === idx ? "active" : ""
+                      }`}
+                      onClick={() => setActiveImgInd(idx)}>
+                      {item?.src ? (
                         <img
-                          src={item.src}
+                          src={item?.src}
                           style={{
                             filter: item?.filter.map(
                               (filter) =>
@@ -230,30 +241,36 @@ export const App = () => {
                           }}
                           alt="Edited"
                         />
-                        <i></i>
-                      </figure>
-                    ))}
-                  </div>
+                      ) : (
+                        <span className="df aic gap5 loading small">
+                          Loading <BiLoaderCircle />
+                        </span>
+                      )}
+                      <i></i>
+                    </figure>
+                  ))}
                 </div>
-              ) : dfCollage ? (
-                <figure
-                  className="default-collage"
-                  onClick={() => {
-                    setFullS(true);
-                    setFullSS(true);
-                    setActiveImg(0);
-                  }}>
-                  <img src={dfCollage?.src} alt="collage" />
-                </figure>
-              ) : (
-                <Result
-                  status="403"
-                  title="Select a collage"
-                  subTitle="Select any collage to view the collage"
-                />
-              )}
-            </div>
-          )
+              </div>
+            ) : dfCollage ? (
+              <figure
+                className="default-collage"
+                onClick={() => {
+                  setFullS(true);
+                  setFullSS(true);
+                  if (dfCollage?.title) {
+                    setActiveImgInd(0);
+                  }
+                }}>
+                <img src={dfCollage?.src} alt="collage" />
+              </figure>
+            ) : (
+              <Result
+                status="403"
+                title="Select a collage"
+                subTitle="Select any collage to view the collage"
+              />
+            )}
+          </div>
         ) : (
           <span className="df aic gap5 loading">
             <BiLoaderCircle />

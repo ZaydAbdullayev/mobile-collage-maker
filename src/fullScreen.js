@@ -32,3 +32,25 @@ export const FullScreen = () => {
     </i>
   );
 };
+
+// const downloadImagesToDevice = () => {
+//   const mainImgScreen = document.querySelector(".main-img-screen");
+//   html2canvas(mainImgScreen).then((canvas) => {
+//     canvas.toBlob((blob) => {
+//       const imageUrl = URL.createObjectURL(blob);
+//       const link = document.createElement("a");
+//       link.href = imageUrl;
+//       link.setAttribute("download", "collage.png");
+//       link.click();
+//       URL.revokeObjectURL(imageUrl);       
+//     });
+//   });
+// };
+
+// const collage = await loadCollage(c);
+// if (collage == null) {
+//   setEmty("Not found images belonging to this collage.");
+// } else {
+//   setActiveC({ ...collage, title });
+//   setDisabled(true);
+// }

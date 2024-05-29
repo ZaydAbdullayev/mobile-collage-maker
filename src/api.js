@@ -30,7 +30,6 @@ async function postRequest(api, data = {}, rawResponse = false) {
 
 export async function getCollages() {
   const result = await postRequest("drive", { fields: 0 });
-  console.log(result);
   return Object.keys(result.booking).map((id) => {
     let collageData = result.booking[id].b_options.collage[0];
     let collage = {
