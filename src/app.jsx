@@ -215,7 +215,7 @@ export const App = () => {
                     />
                   ) : (
                     <span className="df aic gap5 loading small">
-                      Loading <BiLoaderCircle />
+                      <BiLoaderCircle />
                     </span>
                   )}
                   <span onClick={() => changeActiveImgInd(+1)}></span>
@@ -243,7 +243,7 @@ export const App = () => {
                         />
                       ) : (
                         <span className="df aic gap5 loading small">
-                          Loading <BiLoaderCircle />
+                          <BiLoaderCircle />
                         </span>
                       )}
                       <i></i>
