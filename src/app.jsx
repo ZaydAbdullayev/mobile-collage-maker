@@ -3,7 +3,8 @@ import "./css/app.css";
 import { downloadImage } from "./hooks";
 import { getCollages, loadImage } from "./api";
 // import html2canvas from "html2canvas";
-import { Dropdown, ConfigProvider, theme, Result } from "antd";
+import { Dropdown, ConfigProvider, theme, Result, Radio, Space } from "antd";
+import { Divider } from "antd";
 import { RxCross2 } from "react-icons/rx";
 import { BiLoaderCircle } from "react-icons/bi";
 import { PiDotsThreeCircleLight } from "react-icons/pi";
@@ -19,6 +20,17 @@ export const App = () => {
   const [loading, setLoading] = useState(true);
   const [defaultCollage, setDefaultCollage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(1);
+  let order = [4, 3, 2, 1];
+  const onChange = (e) => {
+    setValue(e.target.value);
+  };
+  const handleOpenChange = (nextOpen, info) => {
+    if (info.source === "trigger" || nextOpen) {
+      setOpen(nextOpen);
+    }
+  };
 
   useEffect(() => {
     if (!collages) {
@@ -44,7 +56,11 @@ export const App = () => {
       const imageBlob = await loadImage(collage?.composedId);
       setDefaultCollage({ src: URL.createObjectURL(imageBlob), title });
       setLoading(false);
-      loadCollageImages(collage, index);
+      if (value === 1) {
+        loadCollageImages(collage, index);
+      } else {
+        loadCollageImagesByOrder(collage, index);
+      }
     } catch (error) {
       console.error("Error loading collage:", error);
     }
@@ -61,6 +77,27 @@ export const App = () => {
           setActiveImageIndex(i);
         }
       });
+    } catch (error) {
+      console.error("Error loading collage images:", error);
+    }
+  };
+
+  const loadCollageImagesByOrder = async (collage, index) => {
+    try {
+      const loadImageAtIndex = async (i) => {
+        const imgBlob = await loadImage(collage.collage[i].id);
+        collages[index].collage.collage[i].src = URL.createObjectURL(imgBlob);
+        setCollages([...collages]);
+        if (activeImageIndex === null) {
+          setActiveImageIndex(i);
+        }
+      };
+      const imageLoadOrder = order.map((o) => o - 1);
+      for (const i of imageLoadOrder) {
+        if (i >= 0 && i < collage.collage.length) {
+          await loadImageAtIndex(i);
+        }
+      }
     } catch (error) {
       console.error("Error loading collage images:", error);
     }
@@ -88,17 +125,36 @@ export const App = () => {
       key: "1",
       label: (
         <span
-          onClick={() => console.log()}
+          onClick={() => setOpen(false)}
           className="df aic"
           style={{ gap: "5px" }}>
           <TiUser /> Profile
         </span>
       ),
     },
+    { type: "divider", paragraph: "sd" },
   ];
 
   if (collages) {
     navMenu.push(
+      {
+        key: "32",
+        label: (
+          <Radio.Group onChange={onChange} value={value}>
+            <Divider
+              orientation="left"
+              plain
+              orientationMargin="0"
+              style={{ lineHeight: 0, marginTop: 6, fontSize: "12px" }}>
+              Choose load type
+            </Divider>
+            <Space direction="vertical">
+              <Radio value={1}>in order</Radio>
+              <Radio value={2}>out of order</Radio>
+            </Space>
+          </Radio.Group>
+        ),
+      },
       { type: "divider" },
       {
         key: "2",
@@ -111,6 +167,7 @@ export const App = () => {
               onClick={() => {
                 loadCollageImage(collage?.collage, collage?.title, i);
                 setCurrentIndex(i);
+                setOpen(false);
               }}>
               {collage?.title}
             </span>
@@ -128,7 +185,9 @@ export const App = () => {
           menu={{ items: navMenu }}
           placement="bottomRight"
           trigger={["click"]}
-          overlayClassName="nav-dropdown">
+          overlayClassName="nav-dropdown"
+          onOpenChange={handleOpenChange}
+          open={open}>
           <span className="df aic jcc drop-down">
             <HiOutlineMenu />
           </span>
@@ -198,7 +257,7 @@ export const App = () => {
                       onClick={() => setFullScreenMode(!fullScreenMode)}
                     />
                   ) : (
-                    <span className="df aic gap5 loading small">
+                    <span className="w100 df aic jcc gap5 loading small">
                       <BiLoaderCircle />
                     </span>
                   )}
