@@ -49,6 +49,8 @@ export async function getCollages() {
         y: im.top,
         z: im.layer,
         filter: im.filters,
+        media: im.media,
+        size: im.size,
       })),
     };
 

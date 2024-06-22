@@ -213,6 +213,7 @@
 
 .img-label > img,
 .selected-imgs > figure > img,
+.selected-imgs > figure > video,
 .default-collage > img {
   width: 100%;
   height: 100%;

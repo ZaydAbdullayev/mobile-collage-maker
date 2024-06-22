@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./css/app.css";
-import { downloadImage } from "./hooks";
+import { downloadImage, getOrderBySize } from "./hooks";
 import { getCollages, loadImage } from "./api";
 // import html2canvas from "html2canvas";
 import { Dropdown, ConfigProvider, theme, Result, Radio, Space } from "antd";
@@ -22,7 +22,6 @@ export const App = () => {
   const [currentIndex, setCurrentIndex] = useState(null);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(1);
-  let order = [4, 3, 2, 1];
   const onChange = (e) => {
     setValue(e.target.value);
   };
@@ -62,7 +61,7 @@ export const App = () => {
         loadCollageImagesByOrder(collage, index);
       }
     } catch (error) {
-      console.error("Error loading collage:", error);
+      console.log("Error loading collage:", error);
     }
   };
 
@@ -71,6 +70,12 @@ export const App = () => {
       collage.collage.forEach(async (item, i) => {
         const imgBlob = await loadImage(item.id);
         collages[index].collage.collage[i].src = URL.createObjectURL(imgBlob);
+        if (item?.media) {
+          console.log("calisti1");
+          const mediaBlob = await loadImage(item.media[0]?.dlId);
+          collages[index].collage.collage[i].media_src =
+            URL.createObjectURL(mediaBlob);
+        }
         setCollages([...collages]);
 
         if (activeImageIndex === null) {
@@ -78,21 +83,28 @@ export const App = () => {
         }
       });
     } catch (error) {
-      console.error("Error loading collage images:", error);
+      console.log("Error loading collage images:", error);
     }
   };
 
   const loadCollageImagesByOrder = async (collage, index) => {
     try {
+      const order = getOrderBySize(collage);
       const loadImageAtIndex = async (i) => {
         const imgBlob = await loadImage(collage.collage[i].id);
         collages[index].collage.collage[i].src = URL.createObjectURL(imgBlob);
+        if (collage.collage[i]?.media) {
+          console.log("calisti2");
+          const mediaBlob = await loadImage(collage.collage[i].media[0]?.dlId);
+          collages[index].collage.collage[i].media_src =
+            URL.createObjectURL(mediaBlob);
+        }
         setCollages([...collages]);
         if (activeImageIndex === null) {
           setActiveImageIndex(i);
         }
       };
-      const imageLoadOrder = order.map((o) => o - 1);
+      const imageLoadOrder = order?.map((o) => o - 1);
       for (const i of imageLoadOrder) {
         if (i >= 0 && i < collage.collage.length) {
           await loadImageAtIndex(i);
@@ -177,6 +189,9 @@ export const App = () => {
     );
   }
 
+  console.log(collages?.[currentIndex]);
+  console.log(getOrderBySize(collages?.[currentIndex]?.collage));
+  const activeCollage = collages?.[currentIndex]?.collage;
   return (
     <div className="w100 df fdc aic wrapper">
       <nav className="w100 df aic navbar">
@@ -203,9 +218,9 @@ export const App = () => {
           <div
             className={`df fww main-img-screen ${fullScreen && "full-screen"}`}
             style={{
-              width: `${collages?.[currentIndex]?.collage?.boxSize?.w}px`,
-              height: `${collages?.[currentIndex]?.collage?.boxSize?.h}px`,
-              background: collages?.[currentIndex]?.collage?.boxSize?.bg,
+              width: `${activeCollage?.boxSize?.w}px`,
+              height: `${activeCollage?.boxSize?.h}px`,
+              background: activeCollage?.boxSize?.bg,
             }}>
             {fullScreen ? (
               <div className="w100 df fdc full-mode">
@@ -219,8 +234,7 @@ export const App = () => {
                     <RxCross2 />
                   </span>
                   <big>
-                    {activeImageIndex + 1} -{" "}
-                    {collages?.[currentIndex]?.collage?.collage?.length}
+                    {activeImageIndex + 1} - {activeCollage?.collage?.length}
                   </big>
                   <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
                     <Dropdown
@@ -235,61 +249,33 @@ export const App = () => {
                 </div>
                 <figure className="w100 df aic jcc active-img">
                   <span onClick={() => changeActiveImageIndex(-1)}></span>
-                  {collages?.[currentIndex]?.collage?.collage?.[
-                    activeImageIndex
-                  ]?.src ? (
-                    <img
-                      src={
-                        collages?.[currentIndex]?.collage?.collage?.[
-                          activeImageIndex
-                        ]?.src
-                      }
-                      style={{
-                        filter: collages?.[currentIndex]?.collage?.collage?.[
-                          activeImageIndex
-                        ]?.filter?.map(
-                          (filter) =>
-                            `${filter?.value}(${filter?.number}${filter?.unit})`
-                        ),
-                        userSelect: "none",
-                      }}
-                      alt="Img"
-                      onClick={() => setFullScreenMode(!fullScreenMode)}
-                    />
-                  ) : (
-                    <span className="w100 df aic jcc gap5 loading small">
-                      <BiLoaderCircle />
-                    </span>
+                  {activeImage(
+                    activeCollage?.collage?.[activeImageIndex]?.media?.[0]
+                      ?.type,
+                    activeCollage?.collage?.[activeImageIndex],
+                    fullScreen,
+                    setFullScreen
                   )}
+
                   <span onClick={() => changeActiveImageIndex(1)}></span>
                 </figure>
                 <div
                   className={`w100 df aic selected-imgs ${
                     fullScreenMode && "active"
                   }`}>
-                  {collages[currentIndex].collage?.collage?.map((item, idx) => (
+                  {activeCollage?.collage?.map((item, idx) => (
                     <figure
                       key={idx}
                       className={`df aic jcc ${
                         activeImageIndex === idx ? "active" : ""
                       }`}
                       onClick={() => setActiveImageIndex(idx)}>
-                      {item?.src ? (
-                        <img
-                          src={item?.src}
-                          style={{
-                            filter: item?.filter.map(
-                              (filter) =>
-                                `${filter?.value}(${filter?.number}${filter?.unit})`
-                            ),
-                            userSelect: "none",
-                          }}
-                          alt="Edited"
-                        />
-                      ) : (
-                        <span className="df aic gap5 loading small">
-                          <BiLoaderCircle />
-                        </span>
+                      {activeImage(
+                        item?.media?.[0]?.type,
+                        item,
+                        fullScreen,
+                        setFullScreen,
+                        true
                       )}
                       <i></i>
                     </figure>
@@ -318,4 +304,63 @@ export const App = () => {
       </div>
     </div>
   );
+};
+
+const activeImage = (type, collage, f, setF, under = false) => {
+  switch (type) {
+    case "video":
+      return collage?.media_src ? (
+        <video controls={!under} autoPlay={!under} src={collage?.media_src} />
+      ) : (
+        <span className="df aic gap5 loading small">
+          <BiLoaderCircle />
+        </span>
+      );
+    case "audio":
+      return collage?.media_src ? (
+        <>
+          <img
+            src={collage?.src}
+            style={{
+              filter: collage?.filter?.map(
+                (filter) => `${filter?.value}(${filter?.number}${filter?.unit})`
+              ),
+              userSelect: "none",
+            }}
+            alt="Img"
+            onClick={() => setF(!f)}
+          />
+          {!under && (
+            <audio
+              controls
+              autoPlay
+              src={collage?.media_src}
+              style={{ display: "none" }}
+            />
+          )}
+        </>
+      ) : (
+        <span className="df aic gap5 loading small">
+          <BiLoaderCircle />
+        </span>
+      );
+    default:
+      return collage?.src ? (
+        <img
+          src={collage?.src}
+          style={{
+            filter: collage?.filter?.map(
+              (filter) => `${filter?.value}(${filter?.number}${filter?.unit})`
+            ),
+            userSelect: "none",
+          }}
+          alt="Img"
+          onClick={() => setF(!f)}
+        />
+      ) : (
+        <span className="df aic gap5 loading small">
+          <BiLoaderCircle />
+        </span>
+      );
+  }
 };

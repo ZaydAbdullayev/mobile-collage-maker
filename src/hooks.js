@@ -42,3 +42,17 @@ export function indirResim(resimUrl) {
       console.error("Resim indirme hatası: ", error);
     });
 }
+
+export const getOrderBySize = (collage) => {
+  return collage?.collage
+    ?.map((item, index) => {
+      let size = item.size;
+      if (item.media) {
+        size += item.media[0].size;
+      }
+      console.log(index, size);
+      return { index, size };
+    })
+    .sort((a, b) => a.size - b.size)
+    .map((item) => item.index);
+};
