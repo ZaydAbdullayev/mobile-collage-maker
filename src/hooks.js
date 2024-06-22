@@ -50,7 +50,6 @@ export const getOrderBySize = (collage) => {
       if (item.media) {
         size += item.media[0].size;
       }
-      console.log(index, size);
       return { index, size };
     })
     .sort((a, b) => a.size - b.size)

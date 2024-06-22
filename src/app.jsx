@@ -17,6 +17,7 @@ export const App = () => {
   const [fullScreen, setFullScreen] = useState(null);
   const [fullScreenMode, setFullScreenMode] = useState(false);
   const [collages, setCollages] = useState(null);
+  const [collageImgs, setCollageImgs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [defaultCollage, setDefaultCollage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(null);
@@ -56,9 +57,9 @@ export const App = () => {
       setDefaultCollage({ src: URL.createObjectURL(imageBlob), title });
       setLoading(false);
       if (value === 1) {
-        loadCollageImages(collage, index);
-      } else {
         loadCollageImagesByOrder(collage, index);
+      } else {
+        loadCollageImages(collage, index);
       }
     } catch (error) {
       console.log("Error loading collage:", error);
@@ -68,13 +69,28 @@ export const App = () => {
   const loadCollageImages = async (collage, index) => {
     try {
       collage.collage.forEach(async (item, i) => {
-        const imgBlob = await loadImage(item.id);
-        collages[index].collage.collage[i].src = URL.createObjectURL(imgBlob);
         if (item?.media) {
-          console.log("calisti1");
+          const imgBlob = await loadImage(item.id);
           const mediaBlob = await loadImage(item.media[0]?.dlId);
-          collages[index].collage.collage[i].media_src =
-            URL.createObjectURL(mediaBlob);
+          setCollageImgs((prev) => [
+            ...prev,
+            {
+              ...collages[index].collage.collage[i],
+              src: URL.createObjectURL(imgBlob),
+              media_src: URL.createObjectURL(mediaBlob),
+              exist_ind: i,
+            },
+          ]);
+        } else {
+          const imgBlob = await loadImage(item.id);
+          setCollageImgs((prev) => [
+            ...prev,
+            {
+              ...collages[index].collage.collage[i],
+              src: URL.createObjectURL(imgBlob),
+              exist_ind: i,
+            },
+          ]);
         }
         setCollages([...collages]);
 
@@ -91,21 +107,36 @@ export const App = () => {
     try {
       const order = getOrderBySize(collage);
       const loadImageAtIndex = async (i) => {
-        const imgBlob = await loadImage(collage.collage[i].id);
-        collages[index].collage.collage[i].src = URL.createObjectURL(imgBlob);
         if (collage.collage[i]?.media) {
-          console.log("calisti2");
+          const imgBlob = await loadImage(collage.collage[i].id);
+          console.log(i, imgBlob);
           const mediaBlob = await loadImage(collage.collage[i].media[0]?.dlId);
-          collages[index].collage.collage[i].media_src =
-            URL.createObjectURL(mediaBlob);
+          setCollageImgs((prev) => [
+            ...prev,
+            {
+              ...collages[index].collage.collage[i],
+              src: URL.createObjectURL(imgBlob),
+              media_src: URL.createObjectURL(mediaBlob),
+              exist_ind: i,
+            },
+          ]);
+        } else {
+          const imgBlob = await loadImage(collage.collage[i].id);
+          setCollageImgs((prev) => [
+            ...prev,
+            {
+              ...collages[index].collage.collage[i],
+              src: URL.createObjectURL(imgBlob),
+              exist_ind: i,
+            },
+          ]);
         }
         setCollages([...collages]);
         if (activeImageIndex === null) {
-          setActiveImageIndex(i);
+          setActiveImageIndex(0);
         }
       };
-      const imageLoadOrder = order?.map((o) => o - 1);
-      for (const i of imageLoadOrder) {
+      for (const i of order) {
         if (i >= 0 && i < collage.collage.length) {
           await loadImageAtIndex(i);
         }
@@ -116,8 +147,7 @@ export const App = () => {
   };
 
   const downloadActiveImage = () => {
-    const activeImage =
-      collages?.[currentIndex]?.collage?.collage?.[activeImageIndex]?.src;
+    const activeImage = collageImgs?.[activeImageIndex]?.src;
     if (activeImage) {
       downloadImage(activeImage, "edited.png");
     }
@@ -189,8 +219,6 @@ export const App = () => {
     );
   }
 
-  console.log(collages?.[currentIndex]);
-  console.log(getOrderBySize(collages?.[currentIndex]?.collage));
   const activeCollage = collages?.[currentIndex]?.collage;
   return (
     <div className="w100 df fdc aic wrapper">
@@ -250,9 +278,8 @@ export const App = () => {
                 <figure className="w100 df aic jcc active-img">
                   <span onClick={() => changeActiveImageIndex(-1)}></span>
                   {activeImage(
-                    activeCollage?.collage?.[activeImageIndex]?.media?.[0]
-                      ?.type,
-                    activeCollage?.collage?.[activeImageIndex],
+                    collageImgs?.[activeImageIndex]?.media?.[0]?.type,
+                    collageImgs?.[activeImageIndex],
                     fullScreen,
                     setFullScreen
                   )}
@@ -263,7 +290,7 @@ export const App = () => {
                   className={`w100 df aic selected-imgs ${
                     fullScreenMode && "active"
                   }`}>
-                  {activeCollage?.collage?.map((item, idx) => (
+                  {collageImgs?.map((item, idx) => (
                     <figure
                       key={idx}
                       className={`df aic jcc ${
@@ -280,6 +307,18 @@ export const App = () => {
                       <i></i>
                     </figure>
                   ))}
+                  <figure
+                    className={`df aic jcc `}
+                    style={{
+                      display:
+                        collageImgs?.length === activeCollage?.collage?.length
+                          ? "none"
+                          : "flex",
+                    }}>
+                    <span className="df aic gap5 loading small">
+                      <BiLoaderCircle />
+                    </span>
+                  </figure>
                 </div>
               </div>
             ) : defaultCollage ? (
