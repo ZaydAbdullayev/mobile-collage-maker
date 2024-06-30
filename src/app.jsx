@@ -210,6 +210,7 @@ export const App = () => {
                 loadCollageImage(collage?.collage, collage?.title, i);
                 setCurrentIndex(i);
                 setOpen(false);
+                setCollageImgs([]);
               }}>
               {collage?.title}
             </span>
@@ -219,6 +220,7 @@ export const App = () => {
     );
   }
 
+  console.log(collages?.[currentIndex]);
   const activeCollage = collages?.[currentIndex]?.collage;
   return (
     <div className="w100 df fdc aic wrapper">
