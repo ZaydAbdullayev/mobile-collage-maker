@@ -25,6 +25,7 @@ export const App = () => {
   const [value, setValue] = useState(1);
   const onChange = (e) => {
     setValue(e.target.value);
+    setCollageImgs([]);
   };
   const handleOpenChange = (nextOpen, info) => {
     if (info.source === "trigger" || nextOpen) {
@@ -220,6 +221,7 @@ export const App = () => {
     );
   }
 
+  console.log(collageImgs);
   console.log(collages?.[currentIndex]);
   const activeCollage = collages?.[currentIndex]?.collage;
   return (
@@ -254,10 +256,7 @@ export const App = () => {
             }}>
             {fullScreen ? (
               <div className="w100 df fdc full-mode">
-                <div
-                  className={`w100 df aic jcsb full-mode-title ${
-                    fullScreenMode && "active"
-                  }`}>
+                  <div className={`w100 df aic jcsb full-mode-title ${fullScreenMode && "active"}`}>
                   <span
                     className="df aic jcc close-full-screen"
                     onClick={() => setFullScreen(null)}>
@@ -288,16 +287,11 @@ export const App = () => {
 
                   <span onClick={() => changeActiveImageIndex(1)}></span>
                 </figure>
-                <div
-                  className={`w100 df aic selected-imgs ${
-                    fullScreenMode && "active"
-                  }`}>
+                  <div className={`w100 df aic selected-imgs ${fullScreenMode && "active"}`}>
                   {collageImgs?.map((item, idx) => (
                     <figure
                       key={idx}
-                      className={`df aic jcc ${
-                        activeImageIndex === idx ? "active" : ""
-                      }`}
+                      className={`df aic jcc ${activeImageIndex === idx ? "active" : ""}`}
                       onClick={() => setActiveImageIndex(idx)}>
                       {activeImage(
                         item?.media?.[0]?.type,
@@ -311,12 +305,7 @@ export const App = () => {
                   ))}
                   <figure
                     className={`df aic jcc `}
-                    style={{
-                      display:
-                        collageImgs?.length === activeCollage?.collage?.length
-                          ? "none"
-                          : "flex",
-                    }}>
+                      style={{ display: collageImgs?.length === activeCollage?.collage?.length ? "none" : "flex", }}>
                     <span className="df aic gap5 loading small">
                       <BiLoaderCircle />
                     </span>
