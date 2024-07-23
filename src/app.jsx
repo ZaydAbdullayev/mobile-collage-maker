@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./css/app.css";
 import { downloadImage, getOrderBySize } from "./hooks";
 import { getCollages, loadImage } from "./api";
@@ -23,6 +23,7 @@ export const App = () => {
   const [currentIndex, setCurrentIndex] = useState(null);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(1);
+  const abortControllerRef = useRef(null);
   const onChange = (e) => {
     setValue(e.target.value);
     setCollageImgs([]);
@@ -50,29 +51,35 @@ export const App = () => {
     }
   };
 
-  const loadCollageImage = async (collage, title, index) => {
+  const loadCollageImage = async (collage, title, index, signal) => {
     try {
       setActiveImageIndex(null);
       setLoading(true);
-      const imageBlob = await loadImage(collage?.composedId);
+      const imageBlob = await loadImage(collage?.composedId, signal);
+      if (signal.aborted) return;
       setDefaultCollage({ src: URL.createObjectURL(imageBlob), title });
       setLoading(false);
       if (value === 1) {
-        loadCollageImagesByOrder(collage, index);
+        await loadCollageImagesByOrder(collage, index, signal);
       } else {
-        loadCollageImages(collage, index);
+        await loadCollageImages(collage, index, signal);
       }
     } catch (error) {
-      console.log("Error loading collage:", error);
+      if (error.name !== 'AbortError') {
+        console.log("Error loading collage:", error);
+      }
     }
   };
 
-  const loadCollageImages = async (collage, index) => {
+  const loadCollageImages = async (collage, index, signal) => {
     try {
-      collage.collage.forEach(async (item, i) => {
+      for (let i = 0; i < collage.collage.length; i++) {
+        const item = collage.collage[i];
         if (item?.media) {
-          const imgBlob = await loadImage(item.id);
-          const mediaBlob = await loadImage(item.media[0]?.dlId);
+          const imgBlob = await loadImage(item.id, signal);
+          if (signal.aborted) return;
+          const mediaBlob = await loadImage(item.media[0]?.dlId, signal);
+          if (signal.aborted) return;
           setCollageImgs((prev) => [
             ...prev,
             {
@@ -83,7 +90,8 @@ export const App = () => {
             },
           ]);
         } else {
-          const imgBlob = await loadImage(item.id);
+          const imgBlob = await loadImage(item.id, signal);
+          if (signal.aborted) return;
           setCollageImgs((prev) => [
             ...prev,
             {
@@ -93,58 +101,80 @@ export const App = () => {
             },
           ]);
         }
-        setCollages([...collages]);
-
-        if (activeImageIndex === null) {
-          setActiveImageIndex(i);
-        }
-      });
+        setCollages((prevCollages) => {
+          const newCollages = [...prevCollages];
+          newCollages[index] = {
+            ...newCollages[index],
+            collage: { ...newCollages[index].collage, collage: prevCollages[index].collage.collage },
+          };
+          return newCollages;
+        });
+        setActiveImageIndex((prev) => prev === null ? i : prev);
+      }
     } catch (error) {
-      console.log("Error loading collage images:", error);
+      if (error.name !== 'AbortError') {
+        console.log("Error loading collage images:", error);
+      }
     }
   };
 
-  const loadCollageImagesByOrder = async (collage, index) => {
+  const loadCollageImagesByOrder = async (collage, index, signal) => {
     try {
       const order = getOrderBySize(collage);
-      const loadImageAtIndex = async (i) => {
-        if (collage.collage[i]?.media) {
-          const imgBlob = await loadImage(collage.collage[i].id);
-          console.log(i, imgBlob);
-          const mediaBlob = await loadImage(collage.collage[i].media[0]?.dlId);
-          setCollageImgs((prev) => [
-            ...prev,
-            {
-              ...collages[index].collage.collage[i],
-              src: URL.createObjectURL(imgBlob),
-              media_src: URL.createObjectURL(mediaBlob),
-              exist_ind: i,
-            },
-          ]);
-        } else {
-          const imgBlob = await loadImage(collage.collage[i].id);
-          setCollageImgs((prev) => [
-            ...prev,
-            {
-              ...collages[index].collage.collage[i],
-              src: URL.createObjectURL(imgBlob),
-              exist_ind: i,
-            },
-          ]);
-        }
-        setCollages([...collages]);
-        if (activeImageIndex === null) {
-          setActiveImageIndex(0);
-        }
-      };
       for (const i of order) {
         if (i >= 0 && i < collage.collage.length) {
-          await loadImageAtIndex(i);
+          const item = collage.collage[i];
+          if (item?.media) {
+            const imgBlob = await loadImage(item.id, signal);
+            if (signal.aborted) return;
+            const mediaBlob = await loadImage(item.media[0]?.dlId, signal);
+            if (signal.aborted) return;
+            setCollageImgs((prev) => [
+              ...prev,
+              {
+                ...collages[index].collage.collage[i],
+                src: URL.createObjectURL(imgBlob),
+                media_src: URL.createObjectURL(mediaBlob),
+                exist_ind: i,
+              },
+            ]);
+          } else {
+            const imgBlob = await loadImage(item.id, signal);
+            if (signal.aborted) return;
+            setCollageImgs((prev) => [
+              ...prev,
+              {
+                ...collages[index].collage.collage[i],
+                src: URL.createObjectURL(imgBlob),
+                exist_ind: i,
+              },
+            ]);
+          }
+          setCollages((prevCollages) => {
+            const newCollages = [...prevCollages];
+            newCollages[index] = {
+              ...newCollages[index],
+              collage: { ...newCollages[index].collage, collage: prevCollages[index].collage.collage },
+            };
+            return newCollages;
+          });
+          setActiveImageIndex((prev) => prev === null ? i : prev);
         }
       }
+      setActiveImageIndex((prev) => prev === null ? 0 : prev);
     } catch (error) {
-      console.error("Error loading collage images:", error);
+      if (error.name !== 'AbortError') {
+        console.error("Error loading collage images:", error);
+      }
     }
+  };
+
+  const handleLoadCollage = (collage, title, index) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    loadCollageImage(collage, title, index, abortControllerRef.current.signal);
   };
 
   const downloadActiveImage = () => {
@@ -208,7 +238,7 @@ export const App = () => {
           label: (
             <span
               onClick={() => {
-                loadCollageImage(collage?.collage, collage?.title, i);
+                handleLoadCollage(collage?.collage, collage?.title, i);
                 setCurrentIndex(i);
                 setOpen(false);
                 setCollageImgs([]);

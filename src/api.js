@@ -3,7 +3,7 @@ const u_token = "ff75d97755b27bb0d058ecb2c1ed589f";
 const u_hash =
   "JxgBVHP0rSRyN8Jt653GLQ2iH98IMAlEC3NtiCxkT42f9PqJFT448gQfn9FvSVxM8D7lRNDog/Gxtew97iHdJgFmBIo7wfZHjROujBQ1uPJfzWIdhlVwtiZdTSmPazPR";
 
-async function postRequest(api, data = {}, rawResponse = false) {
+async function postRequest(api, data = {}, rawResponse = false, signal) {
   data = Object.assign({ token: u_token, u_hash: u_hash }, data);
 
   let opt = {
@@ -12,6 +12,7 @@ async function postRequest(api, data = {}, rawResponse = false) {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(data).toString(),
+    signal,
   };
   const response = await fetch(`${url_prefix}${api}`, opt);
   if (!response.ok) throw new Error("Request failed.");
@@ -62,8 +63,8 @@ export async function getCollages() {
   });
 }
 
-export async function loadImage(dlId) {
-  const response = await postRequest(`dropbox/file/${dlId}`, {}, true);
+export async function loadImage(dlId, signal) {
+  const response = await postRequest(`dropbox/file/${dlId}`, {}, true, signal);
   return response.blob();
 }
 
