@@ -251,8 +251,6 @@ export const App = () => {
     );
   }
 
-  console.log(collageImgs);
-  console.log(collages?.[currentIndex]);
   const activeCollage = collages?.[currentIndex]?.collage;
   return (
     <div className="w100 df fdc aic wrapper">
@@ -388,7 +386,7 @@ const activeImage = (type, collage, f, setF, under = false) => {
               userSelect: "none",
             }}
             alt="Img"
-            onClick={() => setF(!f)}
+            onClick={() => setF(under ? !f : f)}
           />
           {!under && (
             <audio
@@ -415,7 +413,7 @@ const activeImage = (type, collage, f, setF, under = false) => {
             userSelect: "none",
           }}
           alt="Img"
-          onClick={() => setF(!f)}
+          onClick={() => setF(under ? !f : f)}
         />
       ) : (
         <span className="df aic gap5 loading small">
